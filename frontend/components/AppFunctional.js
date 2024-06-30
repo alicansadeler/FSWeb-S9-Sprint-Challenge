@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const initialMessage = "";
 const initialEmail = "";
@@ -11,24 +11,30 @@ export default function AppFunctional(props) {
   const [message, setMessage] = useState(initialMessage);
   const [email, setEmail] = useState(initialEmail);
   const [steps, setSteps] = useState(initialSteps);
+  const [valid, setValid] = useState(false);
+  const [error, setError] = useState("");
 
   function reset() {
     setIndex(initialIndex);
     setMessage(initialMessage);
     setEmail(initialEmail);
     setSteps(initialSteps);
+    setValid(false);
+    setError("");
   }
 
   function ilerle(e) {
     let yon = e.target.id;
-
+    let hata = false;
     switch (yon) {
       case "left":
         if (1 < index[0]) {
           setIndex([index[0] - 1, index[1]]);
           setSteps(steps + 1);
+          hata = true;
         } else {
-          setMessage("Sola gidemezsiniz!");
+          hata = false;
+          setMessage("Sola gidemezsiniz");
         }
 
         break;
@@ -36,8 +42,10 @@ export default function AppFunctional(props) {
         if (1 < index[1]) {
           setIndex([index[0], index[1] - 1]);
           setSteps(steps + 1);
+          hata = true;
         } else {
-          setMessage("Yukarı gidemezsiniz!");
+          hata = false;
+          setMessage("Yukarıya gidemezsiniz");
         }
 
         break;
@@ -45,8 +53,10 @@ export default function AppFunctional(props) {
         if (index[0] < 3) {
           setIndex([index[0] + 1, index[1]]);
           setSteps(steps + 1);
+          hata = true;
         } else {
-          setMessage("Sağa gidemezsiniz!");
+          hata = false;
+          setMessage("Sağa gidemezsiniz");
         }
 
         break;
@@ -54,39 +64,47 @@ export default function AppFunctional(props) {
         if (index[1] < 3) {
           setIndex([index[0], index[1] + 1]);
           setSteps(steps + 1);
+          hata = true;
         } else {
-          setMessage("Aşağı gidemezsiniz!");
+          hata = false;
+          setMessage("Aşağıya gidemezsiniz");
         }
 
         break;
       default:
         break;
     }
+
+    if (hata == true) {
+      setMessage(initialMessage);
+    }
   }
 
-  const validateEmail = (email) => {
-    return String(email)
+  const validateEmail = (mail) => {
+    return String(mail)
       .toLowerCase()
       .match(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       );
   };
 
-  const [error, setError] = useState("");
-
   function onChange(e) {
     const value = e.target.value;
+    setEmail(value);
 
     if (validateEmail(value)) {
-      setEmail(value);
       setError("");
+      setValid(true);
     } else {
-      setError("Geçerli bir email adresi girin.");
+      setError("Ouch: email must be a valid email");
+      setValid(false);
     }
   }
 
   function onSubmit(e) {
     e.preventDefault();
+
+    if (!valid) return;
 
     axios
       .post("http://localhost:9000/api/result", {
@@ -97,6 +115,7 @@ export default function AppFunctional(props) {
       })
       .then(function (response) {
         console.log(response);
+        reset();
       })
       .catch(function (error) {
         console.log(error);
@@ -126,7 +145,11 @@ export default function AppFunctional(props) {
         )}
       </div>
       <div className="info">
-        <h3 id="message"></h3>
+        {message && (
+          <h3 style={{ color: "red" }} id="message">
+            {message}
+          </h3>
+        )}
       </div>
       <div id="keypad">
         <button id="left" onClick={ilerle}>
@@ -150,9 +173,10 @@ export default function AppFunctional(props) {
           id="email"
           type="email"
           placeholder="email girin"
-          onChange={onChange}
+          value={email}
+          onChange={(e) => onChange(e)}
         ></input>
-        <input id="submit" type="submit"></input>
+        <input id="submit" type="submit" disabled={!valid}></input>
         {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
     </div>
