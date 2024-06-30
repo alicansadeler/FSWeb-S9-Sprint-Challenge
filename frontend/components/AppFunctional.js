@@ -112,11 +112,18 @@ export default function AppFunctional(props) {
         <h3 id="steps">{steps} kere ilerlediniz</h3>
       </div>
       <div id="grid">
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
-          <div key={idx} className={`square${idx === 4 ? " active" : ""}`}>
-            {idx === 4 ? "B" : null}
-          </div>
-        ))}
+        {[1, 2, 3].map((row) =>
+          [1, 2, 3].map((col) => (
+            <div
+              key={`${row}-${col}`}
+              className={`square${
+                row === index[1] && col === index[0] ? " active" : ""
+              }`}
+            >
+              {row === index[1] && col === index[0] ? "B" : null}
+            </div>
+          ))
+        )}
       </div>
       <div className="info">
         <h3 id="message"></h3>
